@@ -131,6 +131,10 @@ impl ClassManager {
 
 impl ClassError {
     pub fn display(&self) -> String {
-        format!("{:?}",  self)
+        match self {
+            ClassError::ClassRedefinition(s) => format!("Intentaste redefinir la clase {}", s),
+            ClassError::NotDefined(s)        => format!("La clase '{}' no está definida", s),
+            ClassError::CircularDependency   => format!("La definición de esa clase genera una dependencia circular")
+        }
     }
 }

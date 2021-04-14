@@ -26,7 +26,6 @@ enum ProgramError {
     InvalidAction(String),
     NoInput,
     NotEnoughArgs,
-    UnexpectedArgument(String),
     InvalidArguments
 }
 
@@ -66,12 +65,13 @@ impl Program {
             Action::Show(s) => 
                 self.manager
                     .show(s.clone())
-                    .and_then(|desc| Ok(println!("Description for {}:\n{}", s, desc))),
+                    .and_then(|desc| Ok(println!("Descripcion para {}:\n{}", s, desc))),
 
             // create a new class
             Action::Create(c, p, fs) => self.manager.add(c, p, fs)
         };
         
+        // if error, print error
         match out {
             Err(e) => println!("💥 [CLASS ERROR] {}", e.display()),
             _      => {}
@@ -113,6 +113,8 @@ impl Program {
             Some(s) => s
         };
 
+        let mut maybe_func = "";
+
         // check if need to parse parent 
         let parent = match input.next() {
             None        => None,
@@ -120,13 +122,17 @@ impl Program {
                             None => return Err(ProgramError::NotEnoughArgs),
                             Some(s) => Some(s.to_string())
                         },
-            Some(s)     => return Err(ProgramError::UnexpectedArgument(s.to_string()))
+            Some(s)     => {maybe_func = s; None}
         };
 
         // Check for duplicates in functions 
-        let functions = input   
+        let mut functions = input   
                             .map(|s| s.to_string())
                             .collect::<Vec<Function>>();
+        if maybe_func != "" {
+            functions.push(maybe_func.to_string());
+        }
+
         use std::collections::HashSet;
         let mut function_set = HashSet::new();
 
@@ -174,6 +180,11 @@ impl Program {
 
 impl ProgramError {
     fn display(&self) -> String {
-        format!("{:?}", self)
+        match self {
+            ProgramError::InvalidAction(s) => format!("Esta no es una acción válida: {}", s),
+            ProgramError::InvalidArguments => format!("Esa no es una combinación válida de argumentos"),
+            ProgramError::NoInput          => format!("No se ha ingresado ninguna opción"),
+            ProgramError::NotEnoughArgs    => format!("No se han recibido suficientes argumentos")
+        }
     }
 }

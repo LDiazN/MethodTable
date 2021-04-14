@@ -1,5 +1,6 @@
 mod method_table;
 mod driver;
+mod test_suite;
 
 fn main() {
 
